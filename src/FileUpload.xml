@@ -9,11 +9,6 @@
             <category>Data source</category>
             <description></description>
         </property>
-        <property key="contextAssociation" type="entity"  isPath="yes" pathType="reference" required="false" entityProperty="fileEntity">
-            <caption>Association to context</caption>
-            <category>Data source</category>
-            <description>If provided used to set the association of new files to the context. Should be a path to the context</description>
-        </property>
         <property key="message" type="translatableString" required="false">
             <caption>Initial message</caption>
             <category>Appearance</category>
@@ -52,50 +47,6 @@
             <caption>Auto Start Upload</caption>
             <category>Appearance</category>
             <description>Automatic upload of files when droped</description>
-        </property>
-        <property key="onDropEvent" type="enumeration" defaultValue="doNothing">
-            <caption>On drop</caption>
-            <category>Events</category>
-            <description/>
-            <enumerationValues>
-                <enumerationValue key="doNothing">Do nothing</enumerationValue>
-                <enumerationValue key="callMicroflow">Call a microflow</enumerationValue>
-                <enumerationValue key="callNanoflow">Call a nanoflow</enumerationValue>
-            </enumerationValues>
-        </property>
-        <property key="onDropMicroflow" type="microflow" required="false" entityProperty="fileEntity">
-            <caption>On drop microflow</caption>
-            <category>Events</category>
-            <description>Microflow that will be executed when a file is dropped</description>
-            <returnType type="Boolean"/>
-        </property>
-        <property key="onDropNanoflow" type="nanoflow" required="false" entityProperty="fileEntity">
-            <caption>On drop nanoflow</caption>
-            <category>Events</category>
-            <description>Nanoflow that will be executed when a file is dropped</description>
-            <returnType type="Boolean"/>
-        </property>
-        <property key="onRemoveEvent" type="enumeration" defaultValue="doNothing">
-            <caption>On remove of a file</caption>
-            <category>Events</category>
-            <description/>
-            <enumerationValues>
-                <enumerationValue key="doNothing">Do nothing</enumerationValue>
-                <enumerationValue key="callMicroflow">Call a microflow</enumerationValue>
-                <enumerationValue key="callNanoflow">Call a nanoflow</enumerationValue>
-            </enumerationValues>
-        </property>
-        <property key="onRemoveMicroflow" type="microflow" required="false" entityProperty="fileEntity">
-            <caption>On remove microflow</caption>
-            <category>Events</category>
-            <description>Microflow that will be executed when an uploaded file is removed</description>
-            <returnType type="Boolean"/>
-        </property>
-        <property key="onRemoveNanoflow" type="nanoflow" required="false" entityProperty="fileEntity">
-            <caption>On remove nanoflow</caption>
-            <category>Events</category>
-            <description>Nanoflow that will be executed when an uploaded file is removed</description>
-            <returnType type="Boolean"/>
         </property>
         <property key="onUploadEvent" type="enumeration" defaultValue="doNothing">
             <caption>On upload of a file</caption>

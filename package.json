@@ -38,8 +38,8 @@
   "devDependencies": {
     "@types/classnames": "^2.2.4",
     "@types/core-js": "^0.9.46",
-    "@types/enzyme": "3.1.10",
     "@types/dropzone": "^5.0.4",
+    "@types/enzyme": "3.1.10",
     "@types/globalize": "0.0.34",
     "@types/jasmine": "^2.8.9",
     "@types/karma": "^3.0.0",

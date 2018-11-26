@@ -1,6 +1,6 @@
 import { Component, createElement } from "react";
-import * as DropzoneLib from "dropzone";
-import { FileUpload, ReturnObject } from "./FileUpload";
+import { FileUpload } from "./FileUpload";
+import Utils from "../utils/Utils";
 
 export interface WrapperProps {
     class?: string;
@@ -15,175 +15,98 @@ export interface WrapperProps {
 export interface FileUploadContainerProps extends WrapperProps {
     fileEntity: string;
     message: string;
-    contextAssociation: string;
     maxFileSize: number;
     maxFiles: number;
     fileTypes: string;
     autoUpload: boolean;
     thumbnailWidth: number;
     thumbnailHeight: number;
-    onDropMicroflow: string;
-    onRemoveMicroflow: string;
     onUploadMicroflow: string;
-    onDropNanoflow: mx.Nanoflow;
-    onRemoveNanoflow: mx.Nanoflow;
     onUploadNanoflow: mx.Nanoflow;
-    onDropEvent: string;
-    onRemoveEvent: string;
-    onUploadEvent: string;
+    onUploadEvent: UploadEvent;
 }
 
 interface FileUploadContainerState {
-    fileObject: ReturnObject;
+    alertMessage: string;
 }
 
+type UploadEvent = "callMicroflow" | "callNanoflow";
+
 export default class FileUploadContainer extends Component<FileUploadContainerProps, FileUploadContainerState> {
-    private contextObject!: mendix.lib.MxObject;
-    private reference!: string;
-    private maxFiles!: number;
+    private subscriptionHandles: number[] = [];
+    // private formHandle?: number;
 
-    constructor(props: FileUploadContainerProps) {
-        super(props);
-        if (this.props.contextAssociation && typeof this.props.contextAssociation.split("/")[0] === "string") {
-            this.reference = this.props.contextAssociation.split("/")[0];
-            this.maxFiles = this.props.maxFiles;
-        } else {
-            this.reference = "";
-            this.maxFiles = 1;
-        }
-
-        this.state = {
-            fileObject: {
-                file: undefined,
-                guid: "",
-                status: "pending"
-            }
-        };
-    }
+    readonly state: FileUploadContainerState = {
+        alertMessage: ""
+    };
 
     render() {
-        return createElement("div", { className: "container" }, createElement(FileUpload, {
+        return createElement(FileUpload, {
             message: this.props.message,
             maxFileSize: this.props.maxFileSize,
-            maxFiles: this.maxFiles,
+            maxFiles: this.props.maxFiles,
             fileTypes: this.props.fileTypes,
             autoUpload: this.props.autoUpload,
             thumbnailHeight: this.props.thumbnailHeight,
             thumbnailWidth: this.props.thumbnailWidth,
-            executeAction: this.executeAction,
-            createObject: this.createObject,
-            fileobject: this.state.fileObject,
-            saveFileToDatabase: this.saveFile
-        })
-    );
+            onComplete: this.executeAction,
+            divStyle: Utils.parseStyle(this.props.style),
+            className: this.props.class
+        });
     }
 
     componentWillReceiveProps(newProps: FileUploadContainerProps) {
-        this.contextObject = newProps.mxObject;
+        this.resetSubscriptions(newProps.mxObject);
     }
 
-    private executeAction = (event: string) => {
-        const { mxform } = this.props;
-        let microflow = "";
-        let nanoflow: mx.Nanoflow | null = null;
+    componentDidMount() {
+        // this.formHandle = this.props.mxform.listen("commit", callback => this.saveFile(callback));
+    }
 
-        if (event === "onDrop" && this.props.onDropEvent === "callMicroflow") {
-            microflow = this.props.onDropMicroflow;
+    private resetSubscriptions(mxObject?: mendix.lib.MxObject) {
+        this.subscriptionHandles.forEach(window.mx.data.unsubscribe);
+        this.subscriptionHandles = [];
+
+        if (mxObject) {
+            // this.subscriptionHandles.push(window.mx.data.subscribe({
+            //     guid: mxObject.getGuid(),
+            //     callback: () => this.updateCanvasState()
+            // }));
         }
+    }
 
-        if (event === "onDrop" && this.props.onDropEvent === "callNanoflow") {
-            nanoflow = this.props.onDropNanoflow;
-        }
+    // private saveFile(guid: string, file: DropzoneLib.DropzoneFile, dropzone: DropzoneLib) {
+    //     mx.data.saveDocument(guid, file.name, {}, file,
+    //         () => {
+    //             dropzone.emit("complete", file);
+    //             dropzone.emit("success", file);
+    //         },
+    //         error => mx.ui.error(`${error}`)
+    //     );
+    // }
 
-        if (event === "onRemove" && this.props.onRemoveEvent === "callMicroflow") {
-            microflow = this.props.onRemoveMicroflow;
-        }
+    private executeAction = () => {
+        const { mxform, onUploadMicroflow, onUploadNanoflow } = this.props;
 
-        if (event === "onRemove" && this.props.onRemoveEvent === "callNanoflow") {
-            nanoflow = this.props.onRemoveNanoflow;
-        }
-
-        if (event === "onUpload" && this.props.onUploadEvent === "callMicroflow") {
-            microflow = this.props.onUploadMicroflow;
-        }
-
-        if (event === "onUpload" && this.props.onUploadEvent === "callNanoflow") {
-            nanoflow = this.props.onUploadNanoflow;
-        }
-
-        if (microflow) {
-            mx.data.action({
+        if (this.props.onUploadEvent === "callMicroflow" && onUploadMicroflow) {
+            window.mx.data.action({
                 params: {
                     applyto: "selection",
-                    actionname: microflow,
-                    guids: [ this.contextObject.getGuid() ]
+                    actionname: onUploadMicroflow,
+                    guids: [ this.props.mxObject.getGuid() ]
                 },
                 origin: mxform,
-                error: error => mx.ui.error(`error while executing action ${microflow} ${error.message}`)
+                error: error => mx.ui.error(`error while executing action ${onUploadMicroflow} ${error.message}`)
             });
 
-        } else if (nanoflow) {
+        } else if (this.props.onUploadEvent === "callNanoflow" && onUploadNanoflow && onUploadNanoflow.nanoflow) {
             const context = new mendix.lib.MxContext();
-            mx.data.callNanoflow({
-                nanoflow,
+            window.mx.data.callNanoflow({
+                nanoflow: onUploadNanoflow,
                 origin: mxform,
                 context,
                 error: error => mx.ui.error(`error while executing action nanoflow ${error.message}`)
             });
         }
-    }
-
-    private createObject = (file: DropzoneLib.DropzoneFile) => {
-        mx.data.create({
-            entity: this.props.fileEntity,
-            callback: (newFileObject) => {
-                if (newFileObject.isObjectReference(this.reference) && this.contextObject) {
-                    newFileObject.set(this.reference, this.contextObject.getGuid());
-                }
-                this.getValue(newFileObject.getGuid(), file);
-            },
-            error: (createMxObjectError) => {
-                mx.ui.error(`Could not commit object:, ${createMxObjectError}`);
-            }
-        });
-    }
-
-    private getValue = (guid: string, file: any) => {
-        this.setState({
-            fileObject: {
-                guid,
-                file,
-                status: "pending"
-            }
-        });
-    }
-
-    private saveFile(guid: string, file: DropzoneLib.DropzoneFile, dropzone: DropzoneLib) {
-        mx.data.saveDocument(guid, file.name, {}, file,
-            () => {
-                dropzone.emit("complete", file);
-                dropzone.emit("success", file);
-            },
-            saveDocumentError => mx.ui.error(`${saveDocumentError}`)
-        );
-    }
-
-    public static parseStyle(style = ""): { [key: string]: string } {
-        try {
-            return style.split(";").reduce<{ [key: string]: string }>((styleObject, line) => {
-                const pair = line.split(":");
-                if (pair.length === 2) {
-                    const name = pair[0].trim().replace(/(-.)/g, match => match[1].toUpperCase());
-                    styleObject[name] = pair[1].trim();
-                }
-                return styleObject;
-            }, {});
-        } catch (error) {
-            const message = "Failed to parse style";
-            // tslint:disable-next-line:no-console
-            window.logger ? window.logger.error(message) : console.log(message, style, error);
-        }
-
-        return {};
     }
 }
