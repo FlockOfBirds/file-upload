@@ -112,6 +112,7 @@
   "dependencies": {
     "classnames": "^2.2.5",
     "dropzone": "^5.5.1",
-    "progressbar.js": "^1.0.1"
+    "progressbar.js": "^1.0.1",
+    "bootstrap": "^4.1.3"
   }
 }

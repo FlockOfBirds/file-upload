@@ -75,15 +75,13 @@ $howManySteps: 10;
 
     .progress-value {
         display: flex;
-        margin-left: 9px;
+        margin-left: auto;
+        margin-right: auto;
         border-radius: 50%;
         font-size: 15px;
-        text-align: center;
         line-height: 20px;
         align-items: center;
-        justify-content: center;
         height: 70%;
-        //font-family: $work-sans;
         font-weight: 300;
 
         div {
