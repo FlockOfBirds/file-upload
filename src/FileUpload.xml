@@ -4,36 +4,27 @@
     <description>Drags and drop app</description>
     <icon/>
     <properties>
-        <property key="fileEntity" type="entity">
-            <caption>File entity</caption>
-            <category>Data source</category>
-            <description></description>
-        </property>
-        <property key="message" type="translatableString" required="false">
-            <caption>Initial message</caption>
-            <category>Appearance</category>
-            <description>The message that gets displayed before any files are dropped</description>
-            <translations>
-                <translation lang="en_US">text</translation>
-                <translation lang="nl_NL">tekst</translation>
-            </translations>
-        </property>
         <property key="fileTypes" type="string" required="false">
             <caption>File types</caption>
-            <category>Appearance</category>
+            <category>File</category>
             <description>Semi colon  seperated list of file extensions e.g .pdf ; .txt</description>
         </property>
         <property key="maxFileSize" type="integer" defaultValue="5">
-            <caption>Maximum file size (MB)</caption>
-            <category>Appearance</category>
+            <caption>File size limit (MB)</caption>
+            <category>File</category>
             <description>Maximum file size in MB</description>
         </property>
         <property key="maxFiles" type="integer" defaultValue="5">
-            <caption>Maxixum files</caption>
-            <category>Appearance</category>
-            <description>Maximum files</description>
+            <caption>Maximum file count</caption>
+            <category>File</category>
+            <description>Maximum number of files to upload</description>
         </property>
-            <property key="thumbnailWidth" type="integer" defaultValue="100">
+        <property key="autoUpload" type="boolean" defaultValue="false">
+            <caption>Auto upload</caption>
+            <category>File</category>
+            <description>Automatic upload of files when dropped</description>
+        </property>
+        <property key="thumbnailWidth" type="integer" defaultValue="100">
             <caption>Thumbnail width</caption>
             <category>Appearance</category>
             <description></description>
@@ -43,13 +34,8 @@
             <category>Appearance</category>
             <description></description>
         </property>
-        <property key="autoUpload" type="boolean" defaultValue="false">
-            <caption>Auto Start Upload</caption>
-            <category>Appearance</category>
-            <description>Automatic upload of files when droped</description>
-        </property>
         <property key="onUploadEvent" type="enumeration" defaultValue="doNothing">
-            <caption>On upload of a file</caption>
+            <caption>On file upload</caption>
             <category>Events</category>
             <description/>
             <enumerationValues>
@@ -58,13 +44,13 @@
                 <enumerationValue key="callNanoflow">Call a nanoflow</enumerationValue>
             </enumerationValues>
         </property>
-        <property key="onUploadMicroflow" type="microflow" required="false" entityProperty="fileEntity">
+        <property key="onUploadMicroflow" type="microflow" required="false">
             <caption>On upload microflow</caption>
             <category>Events</category>
             <description>Microflow that will be executed when a file is uploaded</description>
             <returnType type="Boolean"/>
         </property>
-        <property key="onUploadNanoflow" type="nanoflow" required="false" entityProperty="fileEntity">
+        <property key="onUploadNanoflow" type="nanoflow" required="false">
             <caption>On upload nanoflow</caption>
             <category>Events</category>
             <description>Nanoflow that will be executed when a file is uploaded</description>
