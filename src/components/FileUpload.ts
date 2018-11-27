@@ -1,13 +1,14 @@
 import { Component, createElement } from "react";
 import * as Dropzone from "dropzone";
 import { Alert } from "./Alert";
+import previewTemplate from "../utils/previewTemplate";
 import "dropzone/dist/dropzone.css";
 import "../ui/DropZone.css";
 import "../ui/FileUpload.scss";
-import previewTemplate from "../utils/previewTemplate";
+import "bootstrap/dist/css/bootstrap.css";
 
 export interface FileUploadProps {
-    message: string;
+    alertMessage: string;
     maxFileSize: number;
     maxFiles: number;
     fileTypes: string;
@@ -16,7 +17,8 @@ export interface FileUploadProps {
     thumbnailHeight: number;
     className?: string;
     divStyle?: object;
-    onComplete?: () => void;
+    executeAction?: () => void;
+    onUpload?: (file: Dropzone.DropzoneFile) => void;
 }
 
 interface FileUploadState {
@@ -31,9 +33,9 @@ export class FileUpload extends Component<FileUploadProps, FileUploadState> {
     };
 
     render() {
-        return createElement("div", { className: "dropzoneContainer" },
+        return createElement("div", { className: "widget-file-upload" },
             createElement("form", { className: "dropzone", id: "dropzoneArea", ref: this.getFileUploadNode }),
-            createElement(Alert, { className: "widget-dropdown-type-ahead-alert" }, this.state.alertMessage)
+            createElement(Alert, { className: "widget-file-upload-alert" }, this.props.alertMessage)
         );
     }
 
@@ -41,16 +43,22 @@ export class FileUpload extends Component<FileUploadProps, FileUploadState> {
         if (this.fileUploadNode) {
             this.dropzone = new Dropzone(this.fileUploadNode, {
                 url: "/not/required/",
-                dictDefaultMessage: this.props.message,
+                dictDefaultMessage: "Drag and Drop your files",
                 uploadMultiple: true,
                 autoProcessQueue: false,
-                addRemoveLinks: false,
-                createImageThumbnails: true,
+                maxFiles: this.props.maxFiles,
+                acceptedFiles: this.props.fileTypes,
+                maxFilesize: this.props.maxFileSize,
                 thumbnailWidth: this.props.thumbnailWidth,
                 thumbnailHeight: this.props.thumbnailHeight,
                 previewTemplate
-            }).on("addedfile", () => {
-                return this.props.onComplete && this.props.onComplete();
+            }).on("addedfile", (file: Dropzone.DropzoneFile) => {
+                if (this.props.onUpload) {
+                    return this.props.onUpload(file);
+                }
+                if (this.props.executeAction) {
+                    return this.props.executeAction();
+                }
             });
         }
     }

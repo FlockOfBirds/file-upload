@@ -9,12 +9,9 @@ export interface WrapperProps {
     style?: string;
     readOnly?: boolean;
     friendlyId?: string;
-    mxContext: mendix.lib.MxContext;
 }
 
 export interface FileUploadContainerProps extends WrapperProps {
-    fileEntity: string;
-    message: string;
     maxFileSize: number;
     maxFiles: number;
     fileTypes: string;
@@ -34,7 +31,8 @@ type UploadEvent = "callMicroflow" | "callNanoflow";
 
 export default class FileUploadContainer extends Component<FileUploadContainerProps, FileUploadContainerState> {
     private subscriptionHandles: number[] = [];
-    // private formHandle?: number;
+    private formHandle?: number;
+    private file: any;
 
     readonly state: FileUploadContainerState = {
         alertMessage: ""
@@ -42,25 +40,41 @@ export default class FileUploadContainer extends Component<FileUploadContainerPr
 
     render() {
         return createElement(FileUpload, {
-            message: this.props.message,
+            alertMessage: this.state.alertMessage,
             maxFileSize: this.props.maxFileSize,
             maxFiles: this.props.maxFiles,
             fileTypes: this.props.fileTypes,
             autoUpload: this.props.autoUpload,
             thumbnailHeight: this.props.thumbnailHeight,
             thumbnailWidth: this.props.thumbnailWidth,
-            onComplete: this.executeAction,
+            executeAction: this.executeAction,
             divStyle: Utils.parseStyle(this.props.style),
-            className: this.props.class
+            className: this.props.class,
+            onUpload: this.handleOnUpload
         });
     }
 
     componentWillReceiveProps(newProps: FileUploadContainerProps) {
-        this.resetSubscriptions(newProps.mxObject);
+        const alertMessage = this.validateProps(newProps.mxObject);
+
+        if (alertMessage) {
+            this.setState({ alertMessage });
+        }
+    }
+
+    componentDidUpdate() {
+        this.resetSubscriptions(this.props.mxObject);
     }
 
     componentDidMount() {
-        // this.formHandle = this.props.mxform.listen("commit", callback => this.saveFile(callback));
+        this.formHandle = this.props.mxform.listen("commit", callback => this.saveFile(callback));
+    }
+
+    componentWillUnmount() {
+        if (this.formHandle) {
+            this.props.mxform.unlisten(this.formHandle);
+        }
+        this.subscriptionHandles.forEach(window.mx.data.unsubscribe);
     }
 
     private resetSubscriptions(mxObject?: mendix.lib.MxObject) {
@@ -68,22 +82,39 @@ export default class FileUploadContainer extends Component<FileUploadContainerPr
         this.subscriptionHandles = [];
 
         if (mxObject) {
-            // this.subscriptionHandles.push(window.mx.data.subscribe({
-            //     guid: mxObject.getGuid(),
-            //     callback: () => this.updateCanvasState()
-            // }));
+            this.subscriptionHandles.push(window.mx.data.subscribe({
+                guid: mxObject.getGuid(),
+                callback: () => this.validateProps(mxObject)
+            }));
         }
     }
 
-    // private saveFile(guid: string, file: DropzoneLib.DropzoneFile, dropzone: DropzoneLib) {
-    //     mx.data.saveDocument(guid, file.name, {}, file,
-    //         () => {
-    //             dropzone.emit("complete", file);
-    //             dropzone.emit("success", file);
-    //         },
-    //         error => mx.ui.error(`${error}`)
-    //     );
-    // }
+    private handleOnUpload = (file: any) => {
+        this.file = file;
+        if (this.props.autoUpload) {
+            this.saveFile(() => undefined);
+        }
+    }
+
+    private saveFile(callback: () => void) {
+        if (this.file) {
+            mx.data.saveDocument(this.props.mxObject.getGuid(), this.file.name,
+                {}, this.file,
+                callback,
+                error => mx.ui.error(`${error}`)
+            );
+        }
+    }
+
+    public validateProps(mxObject: mendix.lib.MxObject): string {
+        let errorMessage = "";
+
+        if (mxObject && !mxObject.inheritsFrom("System.FileDocument")) {
+            errorMessage = `${this.props.friendlyId}: ${mxObject.getEntity()} does not inherit from "System.File".`;
+        }
+
+        return errorMessage;
+    }
 
     private executeAction = () => {
         const { mxform, onUploadMicroflow, onUploadNanoflow } = this.props;
