@@ -56,6 +56,7 @@ export class FileUpload extends Component<FileUploadProps, FileUploadState> {
                 if (this.props.onUpload) {
                     return this.props.onUpload(file);
                 }
+            }).on("addedfile", () => {
                 if (this.props.executeAction) {
                     return this.props.executeAction();
                 }
